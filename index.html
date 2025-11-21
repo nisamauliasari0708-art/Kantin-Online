@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kantin Digital - SMAN 1 DRAMAGA</title>
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Memuat font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Konfigurasi Tailwind kustom -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        // Palet warna sesuai permintaan
+                        'brand-blue': {
+                            light: '#E0F2FE', // Biru muda (sky-100)
+                            DEFAULT: '#0284C7', // Biru utama (sky-600)
+                            dark: '#0369A1'  // Biru tua (sky-800)
+                        },
+                        'brand-green': {
+                            light: '#D1FAE5', // Hijau muda (emerald-100)
+                            DEFAULT: '#059669', // Hijau utama (emerald-600)
+                            dark: '#065F46'  // Hijau tua (emerald-800)
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Style tambahan untuk scrollbar yang lebih rapi */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+
+    <!-- Kontainer utama aplikasi -->
+    <div id="app" class="min-h-screen">
+        <!-- Konten aplikasi akan dirender oleh JavaScript di sini -->
+    </div>
+
+    <!-- Modal container -->
+    <div id="modal-container" class="fixed inset-0 z-50 hidden"></div>
+
+    <script type="module">
+        // =======================================================================
+        // APLIKASI KANTIN DIGITAL SMAN 1 DRAMAGA
+        // =======================================================================
+        
+        // --- 1. STATE MANAJEMEN ---
+        // Variabel global untuk menyimpan state aplikasi
+        
+        // currentUser: Menyimpan data user yang sedang login
+        // { username: 'Budi', role: 'Siswa' }
+        let currentUser = null;
+        
+        // currentView: Mengontrol halaman apa yang sedang tampil
+        // { page: 'login' }
+        // { page: 'dashboard', subpage: 'menu' }
+        let currentView = {
+            page: 'login',
+            params: {}
+        };
+        
+        // cart: Menyimpan item keranjang belanja (untuk Siswa & Guru)
+        // let cart = []; // Dihapus/Diganti dengan sistem pemesanan langsung
+
+        // --- 2. DATA LOKAL (PENGGANTI DATABASE) ---
+        // Semua data akan reset jika halaman di-refresh
+
+        let sellers = [
+            { id: 1, name: 'Kantin Bu Susi' },
+            { id: 2, name: 'Warung Pak Joko' },
+            { id: 3, name: 'Kantin Sehat' }
+        ];
+
+        let menus = [
+            { id: 1, sellerId: 1, name: 'Nasi Goreng Spesial', price: 15000, stock: 20, category: 'makanan', image: 'https://placehold.co/600x400/D1FAE5/065F46?text=Nasi+Goreng' },
+            { id: 2, sellerId: 1, name: 'Es Teh Manis', price: 5000, stock: 50, category: 'minuman', image: 'https://placehold.co/600x400/E0F2FE/0369A1?text=Es+Teh' },
+            { id: 3, sellerId: 2, name: 'Batagor', price: 10000, stock: 30, category: 'snack', image: 'https://placehold.co/600x400/FEF3C7/D97706?text=Batagor' },
+            { id: 4, sellerId: 2, name: 'Soto Ayam', price: 12000, stock: 15, category: 'makanan', image: 'https://placehold.co/600x400/D1FAE5/065F46?text=Soto+Ayam' },
+            { id: 5, sellerId: 3, name: 'Salad Buah', price: 10000, stock: 25, category: 'snack', image: 'https://placehold.co/600x400/FEF3C7/D97706?text=Salad+Buah' },
+            { id: 6, sellerId: 3, name: 'Jus Alpukat', price: 8000, stock: 30, category: 'minuman', image: 'https://placehold.co/600x400/E0F2FE/0369A1?text=Jus+Alpukat' },
+            // --- Menu Tambahan ---
+            { id: 7, sellerId: 1, name: 'Nasi Uduk Komplit', price: 18000, stock: 15, category: 'makanan', image: 'https://placehold.co/600x400/D1FAE5/065F46?text=Nasi+Uduk' },
+            { id: 8, sellerId: 1, name: 'Aneka Gorengan', price: 2000, stock: 100, category: 'snack', image: 'https://placehold.co/600x400/FEF3C7/D97706?text=Gorengan' },
+            { id: 9, sellerId: 2, name: 'Bakso Urat', price: 15000, stock: 25, category: 'makanan', image: 'https://placehold.co/600x400/D1FAE5/065F46?text=Bakso' },
+            { id: 10, sellerId: 2, name: 'Kopi Susu Gula Aren', price: 10000, stock: 40, category: 'minuman', image: 'https://placehold.co/600x400/E0F2FE/0369A1?text=Kopi+Susu' },
+            { id: 11, sellerId: 3, name: 'Gado-Gado', price: 14000, stock: 20, category: 'makanan', image: 'https://placehold.co/600x400/D1FAE5/065F46?text=Gado-Gado' },
+            { id: 12, sellerId: 3, name: 'Keripik Pisang Coklat', price: 5000, stock: 50, category: 'snack', image: 'https://placehold.co/600x400/FEF3C7/D97706?text=Keripik+Pisang' },
+            { id: 13, sellerId: 1, name: 'Mie Ayam Bakso', price: 16000, stock: 20, category: 'makanan', image: 'https://placehold.co/600x400/D1FAE5/065F46?text=Mie+Ayam' },
+            { id: 14, sellerId: 2, name: 'Jus Jambu Merah', price: 8000, stock: 30, category: 'minuman', image: 'https://placehold.co/600x400/E0F2FE/0369A1?text=Jus+Jambu' }
+        ];
+
+        let orders = [
+            { id: 1, userId: 'siswa_budi', userRole: 'Siswa', sellerId: 1, items: [{ menuId: 1, qty: 1, name: 'Nasi Goreng Spesial', price: 15000 }], total: 15000, status: 'Siap diambil' },
+            { id: 2, userId: 'guru_rini', userRole: 'Guru', sellerId: 2, items: [{ menuId: 3, qty: 2, name: 'Batagor', price: 10000 }], total: 20000, status: 'Diterima' },
+            { id: 3, userId: 'siswa_ana', userRole: 'Siswa', sellerId: 1, items: [{ menuId: 2, qty: 1, name: 'Es Teh Manis', price: 5000 }], total: 5000, status: 'Selesai' },
+        ];
+
+        let promotions = [
+            { id: 1, title: 'Diskon Jam Istirahat!', description: 'Semua Makanan Diskon 20%', originalPrice: null, promoPrice: null, time: '10:00 - 10:30', category: 'makanan' },
+            { id: 2, title: 'Jumat Berkah', description: 'Es Teh Manis Cuma Rp 2.000', originalPrice: 5000, promoPrice: 2000, time: '11:00 - 13:00', menuId: 2 }
+        ];
+
+        const orderStatuses = ['Diterima', 'Diproses', 'Siap diambil', 'Selesai', 'Dibatalkan'];
+
+        // --- 3. UTILITY FUNCTIONS ---
+        
+        /**
+         * Mengubah state tampilan dan me-render ulang aplikasi
+         * @param {string} page - Halaman tujuan (e.g., 'login', 'dashboard')
+         * @param {object} params - Parameter tambahan (e.g., { subpage: 'menu' })
+         */
+        window.navigateTo = function(page, params = {}) {
+            currentView = { 
+                page, 
+                ...params, 
+                params: params.params || {} // Memastikan .params selalu ada
+            };
+            renderApp();
+        }
+
+        /**
+         * Memformat angka menjadi format mata uang Rupiah
+         * @param {number} number - Angka yang akan diformat
+         */
+        function formatCurrency(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(number);
+        }
+        
+        /**
+         * Menampilkan modal
+         * @param {string} title - Judul modal
+         * @param {string} contentHtml - HTML untuk isi modal
+         * @param {string} footerHtml - HTML untuk footer modal (tombol)
+         */
+        function showModal(title, contentHtml, footerHtml) {
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.innerHTML = `
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+                        <div class="flex justify-between items-center p-4 border-b">
+                            <h3 class="text-xl font-semibold text-gray-800">${title}</h3>
+                            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+                        </div>
+                        <div class="p-6 overflow-y-auto">${contentHtml}</div>
+                        <div class="p-4 bg-gray-50 border-t flex justify-end space-x-2">
+                            ${footerHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+            modalContainer.classList.remove('hidden');
+        }
+
+        /**
+         * Menutup modal
+         */
+        window.closeModal = function() {
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.innerHTML = '';
+            modalContainer.classList.add('hidden');
+        }
+        
+        /**
+         * Menampilkan notifikasi/pesan singkat
+         * @param {string} message - Pesan yang ingin ditampilkan
+         * @param {string} type - 'success' (hijau) atau 'error' (merah)
+         */
+        function showToast(message, type = 'success') {
+            const toastId = 'toast-' + Date.now();
+            const bgColor = type === 'success' ? 'bg-brand-green-DEFAULT' : 'bg-red-500';
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `fixed top-5 right-5 ${bgColor} text-white py-3 px-6 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 ease-out z-50`;
+            toast.innerText = message;
+            
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+                toast.classList.add('translate-x-0');
+            }, 100);
+
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.remove('translate-x-0');
+                toast.classList.add('translate-x-full');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // --- 4. RENDER FUNCTIONS (VIEWS) ---
+
+        /**
+         * Render Halaman Login
+         */
+        function renderLogin() {
+            return `
+                <div class="flex items-center justify-center min-h-screen bg-brand-blue-light p-4">
+                    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl">
+                        <h1 class="text-3xl font-bold text-center text-brand-blue-dark mb-2">SMAN 1 DRAMAGA</h1>
+                        <h2 class="text-xl text-center text-gray-600 mb-8">Kantin Digital</h2>
+                        
+                        <form id="login-form" class="space-y-6">
+                            <div>
+                                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                                <input type="text" id="username" name="username" required 
+                                    class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-brand-blue-DEFAULT focus:border-brand-blue-DEFAULT">
+                            </div>
+                            
+                            <div>
+                                <label for="role" class="block text-sm font-medium text-gray-700">Login sebagai</label>
+                                <select id="role" name="role" required 
+                                    class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-brand-blue-DEFAULT focus:border-brand-blue-DEFAULT">
+                                    <option value="Siswa">Siswa</option>
+                                    <option value="Guru">Guru</option>
+                                    <option value="Penjual">Penjual</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                                <input type="password" id="password" name="password" required 
+                                    class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-brand-blue-DEFAULT focus:border-brand-blue-DEFAULT">
+                                <p class="text-xs text-gray-500 mt-1">Note: Data tidak divalidasi, masukkan data apapun.</p>
+                            </div>
+                            
+                            <div>
+                                <button type="submit" 
+                                    class="w-full flex justify-center py-3 px-6 border border-transparent rounded-lg shadow-lg text-base font-semibold text-white bg-brand-blue-DEFAULT hover:bg-brand-blue-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue-DEFAULT transition-colors duration-300">
+                                    Login
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Render kerangka utama Dashboard (Header + Sidebar + Content)
+         * @param {string} title - Judul halaman
+         * @param {string} sidebarHtml - HTML untuk navigasi sidebar
+         * @param {string} contentHtml - HTML untuk konten utama
+         */
+        function renderDashboardShell(title, sidebarHtml, contentHtml) {
+            return `
+                <div class="flex h-screen bg-gray-100">
+                    <!-- Sidebar -->
+                    <aside class="w-64 bg-white shadow-lg flex-shrink-0">
+                        <div class="h-16 flex items-center justify-center border-b">
+                            <h1 class="text-xl font-bold text-brand-blue-DEFAULT">SMAN 1 DRAMAGA</h1>
+                        </div>
+                        <nav class="py-4 px-2">
+                            ${sidebarHtml}
+                        </nav>
+                    </aside>
+                    
+                    <!-- Main Content -->
+                    <div class="flex-1 flex flex-col overflow-hidden">
+                        <!-- Header -->
+                        <header class="bg-white shadow-md z-10">
+                            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                <div class="flex justify-between items-center h-16">
+                                    <!-- Judul Halaman -->
+                                    <h2 class="text-2xl font-semibold text-gray-800">${title}</h2>
+                                    
+                                    <!-- Info User & Logout -->
+                                    <div class="flex items-center space-x-4">
+                                        <span class="text-sm text-gray-600 hidden md:block">
+                                            Selamat datang, 
+                                            <span class="font-medium">${currentUser.username}</span> 
+                                            (${currentUser.role})
+                                        </span>
+                                        <button id="logout-button" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition-colors duration-200 text-sm font-medium">
+                                            Logout
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </header>
+                        
+                        <!-- Konten Halaman -->
+                        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                            ${contentHtml}
+                        </main>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 4a. RENDER DASHBOARD ADMIN ---
+        
+        function renderAdminDashboard() {
+            const subpage = currentView.subpage || 'penjual';
+            
+            const sidebar = `
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'penjual' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'penjual' ? 'bg-brand-blue-light text-brand-blue-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Kelola Penjual</span>
+                </a>
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'menu' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'menu' ? 'bg-brand-blue-light text-brand-blue-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Kelola Menu</span>
+                </a>
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'pesanan' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'pesanan' ? 'bg-brand-blue-light text-brand-blue-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Rekap Pesanan</span>
+                </a>
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'transaksi' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'transaksi' ? 'bg-brand-blue-light text-brand-blue-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Lihat Transaksi</span>
+                </a>
+            `;
+            
+            let content = '';
+            let title = '';
+            
+            switch (subpage) {
+                case 'penjual':
+                    title = 'Kelola Penjual';
+                    content = renderAdminPenjual();
+                    break;
+                case 'menu':
+                    title = 'Kelola Menu';
+                    content = renderAdminMenu();
+                    break;
+                case 'pesanan':
+                    title = 'Rekap Pesanan';
+                    content = renderAdminPesanan();
+                    break;
+                case 'transaksi':
+                    title = 'Lihat Transaksi';
+                    content = renderAdminTransaksi();
+                    break;
+                default:
+                    title = 'Kelola Penjual';
+                    content = renderAdminPenjual();
+            }
+            
+            return renderDashboardShell(title, sidebar, content);
+        }
+        
+        function renderAdminPenjual() {
+            const tableRows = sellers.map(seller => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-6 py-4">${seller.id}</td>
+                    <td class="px-6 py-4 font-medium">${seller.name}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="handleEditSeller(${seller.id})" class="text-brand-blue-DEFAULT hover:text-brand-blue-dark font-medium mr-4">Edit</button>
+                        <button onclick="handleDeleteSeller(${seller.id})" class="text-red-500 hover:text-red-700 font-medium">Hapus</button>
+                    </td>
+                </tr>
+            `).join('');
+        
+            return `
+                <div class="flex justify-end mb-4">
+                    <button onclick="handleAddSeller()" class="bg-brand-green-DEFAULT text-white py-2 px-5 rounded-lg shadow hover:bg-brand-green-dark transition-colors">
+                        + Tambah Penjual
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="w-full table-auto">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Penjual</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderAdminMenu() {
+            const sellerOptions = sellers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+            const tableRows = menus.map(menu => {
+                const seller = sellers.find(s => s.id === menu.sellerId);
+                return `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-6 py-4">${menu.id}</td>
+                        <td class="px-6 py-4 font-medium">${menu.name}</td>
+                        <td class="px-6 py-4">${seller ? seller.name : 'N/A'}</td>
+                        <td class="px-6 py-4">${formatCurrency(menu.price)}</td>
+                        <td class="px-6 py-4">${menu.stock}</td>
+                        <td class="px-6 py-4 capitalize">${menu.category}</td>
+                        <td class="px-6 py-4 text-right">
+                            <button onclick="handleEditMenu(${menu.id})" class="text-brand-blue-DEFAULT hover:text-brand-blue-dark font-medium mr-4">Edit</button>
+                            <button onclick="handleDeleteMenu(${menu.id})" class="text-red-500 hover:text-red-700 font-medium">Hapus</button>
+                        </td>
+                    </tr>
+                `
+            }).join('');
+        
+            return `
+                <div class="flex justify-end mb-4">
+                    <button onclick="handleAddMenu()" class="bg-brand-green-DEFAULT text-white py-2 px-5 rounded-lg shadow hover:bg-brand-green-dark transition-colors">
+                        + Tambah Menu
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow overflow-x-auto">
+                    <table class="w-full table-auto min-w-max">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Menu</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Penjual</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderAdminPesanan() {
+            const tableRows = orders.map(order => {
+                const seller = sellers.find(s => s.id === order.sellerId);
+                const itemsList = order.items.map(i => `${i.name} (x${i.qty})`).join(', ');
+                return `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-6 py-4">${order.id}</td>
+                        <td class="px-6 py-4 font-medium">${order.userId} (${order.userRole})</td>
+                        <td class="px-6 py-4">${seller ? seller.name : 'N/A'}</td>
+                        <td class="px-6 py-4">${itemsList}</td>
+                        <td class="px-6 py-4">${formatCurrency(order.total)}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 text-xs font-medium rounded-full ${
+                                order.status === 'Selesai' ? 'bg-green-100 text-green-800' :
+                                order.status === 'Diterima' ? 'bg-blue-100 text-blue-800' :
+                                order.status === 'Diproses' ? 'bg-yellow-100 text-yellow-800' :
+                                order.status === 'Siap diambil' ? 'bg-indigo-100 text-indigo-800' :
+                                'bg-gray-100 text-gray-800'
+                            }">${order.status}</span>
+                        </td>
+                    </tr>
+                `
+            }).join('');
+        
+            return `
+                <div class="bg-white rounded-lg shadow overflow-x-auto">
+                    <table class="w-full table-auto min-w-max">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Pesanan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pemesan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Penjual</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${tableRows.length > 0 ? tableRows : '<tr><td colspan="6" class="p-6 text-center text-gray-500">Belum ada pesanan.</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        
+        function renderAdminTransaksi() {
+            const completedOrders = orders.filter(o => o.status === 'Selesai');
+            const totalPendapatan = completedOrders.reduce((sum, order) => sum + order.total, 0);
+
+            const tableRows = completedOrders.map(order => {
+                const seller = sellers.find(s => s.id === order.sellerId);
+                return `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-6 py-4">${order.id}</td>
+                        <td class="px-6 py-4 font-medium">${order.userId}</td>
+                        <td class="px-6 py-4">${seller ? seller.name : 'N/A'}</td>
+                        <td class="px-6 py-4">${formatCurrency(order.total)}</td>
+                        <td class="px-6 py-4 text-green-600 font-medium">Selesai</td>
+                    </tr>
+                `
+            }).join('');
+        
+            return `
+                <div class="mb-6 p-6 bg-brand-green-light rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-brand-green-dark">Total Transaksi Selesai</h3>
+                    <p class="text-3xl font-bold text-brand-green-dark mt-2">${formatCurrency(totalPendapatan)}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow overflow-x-auto">
+                    <table class="w-full table-auto min-w-max">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Pesanan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pemesan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Penjual</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${tableRows.length > 0 ? tableRows : '<tr><td colspan="5" class="p-6 text-center text-gray-500">Belum ada transaksi selesai.</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // --- 4b. RENDER DASHBOARD SISWA & GURU ---
+        
+        function renderSiswaGuruDashboard() {
+            const subpage = currentView.subpage || 'pesanan'; // Diubah dari 'menu' ke 'pesanan'
+            const roleName = currentUser.role; // Siswa or Guru
+            
+            const sidebar = `
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'menu' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'menu' ? 'bg-brand-blue-light text-brand-blue-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Lihat Menu</span>
+                </a>
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'pesanan' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'pesanan' ? 'bg-brand-blue-light text-brand-blue-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Pesanan Aktif</span>
+                </a>
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'riwayat' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'riwayat' ? 'bg-brand-blue-light text-brand-blue-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Riwayat Pesanan</span>
+                </a>
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'promo' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'promo' ? 'bg-brand-blue-light text-brand-blue-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Promo</span>
+                </a>
+            `;
+            
+            let content = '';
+            let title = '';
+            
+            switch (subpage) {
+                case 'menu':
+                    title = 'Menu Kantin';
+                    content = renderSiswaMenu();
+                    break;
+                case 'pesanan':
+                    title = 'Pesanan Aktif Saya';
+                    content = renderSiswaPesanan();
+                    break;
+                case 'riwayat':
+                    title = 'Riwayat Pesanan Selesai';
+                    content = renderSiswaRiwayat();
+                    break;
+                case 'promo':
+                    title = 'Promo Aktif';
+                    content = renderSiswaPromo();
+                    break;
+                default:
+                    title = 'Pesanan Aktif Saya'; // Diubah dari 'Menu Kantin'
+                    content = renderSiswaPesanan(); // Diubah dari renderSiswaMenu()
+            }
+            
+            return renderDashboardShell(title, sidebar, content);
+        }
+
+        function renderSiswaMenu() {
+            const filter = currentView.params.filter || 'semua';
+            
+            const filteredMenus = menus.filter(menu => {
+                if (filter === 'semua') return true;
+                return menu.category === filter;
+            });
+            
+            const menuCards = filteredMenus.map(menu => {
+                const seller = sellers.find(s => s.id === menu.sellerId);
+                // const itemInCart = cart.find(item => item.menuId === menu.id); // Dihapus
+                
+                return `
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+                    <img class="w-full h-48 object-cover" src="${menu.image}" alt="${menu.name}">
+                    <div class="p-5">
+                        <h3 class="text-xl font-semibold text-gray-800">${menu.name}</h3>
+                        <p class="text-sm text-gray-500 mb-3">Oleh: ${seller ? seller.name : 'N/A'}</p>
+                        <p class="text-lg font-bold text-brand-blue-DEFAULT">${formatCurrency(menu.price)}</p>
+                        <p class="text-sm text-gray-600 mb-4">Stok: ${menu.stock}</p>
+                        <button onclick="handleDirectOrder(${menu.id})" class="w-full py-3 px-6 rounded-lg text-base font-semibold text-white transition-colors duration-300 ${
+                            // Logika tombol disederhanakan
+                            (menu.stock === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-brand-blue-DEFAULT hover:bg-brand-blue-dark')
+                        }" ${menu.stock === 0 ? 'disabled' : ''}>
+                            ${(menu.stock === 0 ? 'Stok Habis' : 'Pesan Sekarang')}
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            
+            // const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0); // Dihapus
+
+            return `
+                <!-- Filter Kategori -->
+                <div class="mb-6 flex flex-wrap gap-3">
+                    <button onclick="navigateTo('dashboard', { subpage: 'menu', params: { filter: 'semua' } })" class="py-2 px-5 rounded-full text-sm font-medium ${filter === 'semua' ? 'bg-brand-blue-DEFAULT text-white shadow-lg' : 'bg-white text-gray-700 shadow-sm hover:bg-gray-50'}">Semua</button>
+                    <button onclick="navigateTo('dashboard', { subpage: 'menu', params: { filter: 'makanan' } })" class="py-2 px-5 rounded-full text-sm font-medium ${filter === 'makanan' ? 'bg-brand-blue-DEFAULT text-white shadow-lg' : 'bg-white text-gray-700 shadow-sm hover:bg-gray-50'}">Makanan</button>
+                    <button onclick="navigateTo('dashboard', { subpage: 'menu', params: { filter: 'minuman' } })" class="py-2 px-5 rounded-full text-sm font-medium ${filter === 'minuman' ? 'bg-brand-blue-DEFAULT text-white shadow-lg' : 'bg-white text-gray-700 shadow-sm hover:bg-gray-50'}">Minuman</button>
+                    <button onclick="navigateTo('dashboard', { subpage: 'menu', params: { filter: 'snack' } })" class="py-2 px-5 rounded-full text-sm font-medium ${filter === 'snack' ? 'bg-brand-blue-DEFAULT text-white shadow-lg' : 'bg-white text-gray-700 shadow-sm hover:bg-gray-50'}">Snack</button>
+                </div>
+                
+                <!-- Daftar Menu -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    ${filteredMenus.length > 0 ? menuCards : '<p class="text-gray-500 col-span-full text-center">Tidak ada menu untuk kategori ini.</p>'}
+                </div>
+                
+                <!-- Tombol Checkout (Sticky) Dihapus -->
+            `;
+        }
+        
+        function renderSiswaPesanan() {
+            const myOrders = orders.filter(o => o.userId === currentUser.username && o.status !== 'Selesai').sort((a, b) => b.id - a.id);
+
+            const orderCards = myOrders.map(order => {
+                const seller = sellers.find(s => s.id === order.sellerId);
+                const itemsList = order.items.map(i => `
+                    <li class="flex justify-between text-sm">
+                        <span>${i.name} (x${i.qty})</span>
+                        <span class="font-medium">${formatCurrency(i.price * i.qty)}</span>
+                    </li>
+                `).join('');
+                
+                return `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-5 border-b flex justify-between items-center">
+                        <div>
+                            <p class="text-sm text-gray-500">Pesanan #${order.id}</p>
+                            <p class="font-semibold text-gray-800">Kantin: ${seller ? seller.name : 'N/A'}</p>
+                        </div>
+                        <span class="px-3 py-1 text-sm font-medium rounded-full ${
+                            order.status === 'Selesai' ? 'bg-green-100 text-green-800' :
+                            order.status === 'Diterima' ? 'bg-blue-100 text-blue-800' :
+                            order.status === 'Diproses' ? 'bg-yellow-100 text-yellow-800' :
+                            order.status === 'Siap diambil' ? 'bg-indigo-100 text-indigo-800' :
+                            'bg-gray-100 text-gray-800'
+                        }">${order.status}</span>
+                    </div>
+                    <div class="p-5">
+                        <ul class="space-y-2 mb-4">
+                            ${itemsList}
+                        </ul>
+                        <div class="border-t pt-3 flex justify-between items-center">
+                            <span class="font-semibold text-gray-700">Total</span>
+                            <span class="text-lg font-bold text-brand-blue-DEFAULT">${formatCurrency(order.total)}</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            
+            return `
+                <div class="space-y-6">
+                    ${myOrders.length > 0 ? orderCards : '<p class="text-gray-500 text-center">Anda tidak memiliki pesanan aktif saat ini.</p>'}
+                </div>
+            `;
+        }
+        
+        /**
+         * Render halaman Riwayat Pesanan Selesai (Baru)
+         */
+        function renderSiswaRiwayat() {
+            const myOrders = orders.filter(o => o.userId === currentUser.username && o.status === 'Selesai').sort((a, b) => b.id - a.id);
+
+            const orderCards = myOrders.map(order => {
+                const seller = sellers.find(s => s.id === order.sellerId);
+                const itemsList = order.items.map(i => `
+                    <li class="flex justify-between text-sm">
+                        <span>${i.name} (x${i.qty})</span>
+                        <span class="font-medium">${formatCurrency(i.price * i.qty)}</span>
+                    </li>
+                `).join('');
+                
+                return `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-5 border-b flex justify-between items-center">
+                        <div>
+                            <p class="text-sm text-gray-500">Pesanan #${order.id}</p>
+                            <p class="font-semibold text-gray-800">Kantin: ${seller ? seller.name : 'N/A'}</p>
+                        </div>
+                        <span class="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800">
+                            ${order.status}
+                        </span>
+                    </div>
+                    <div class="p-5">
+                        <ul class="space-y-2 mb-4">
+                            ${itemsList}
+                        </ul>
+                        <div class="border-t pt-3 flex justify-between items-center">
+                            <span class="font-semibold text-gray-700">Total</span>
+                            <span class="text-lg font-bold text-brand-blue-DEFAULT">${formatCurrency(order.total)}</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            
+            return `
+                <div class="space-y-6">
+                    ${myOrders.length > 0 ? orderCards : '<p class="text-gray-500 text-center">Anda belum memiliki riwayat pesanan yang selesai.</p>'}
+                </div>
+            `;
+        }
+
+        function renderSiswaPromo() {
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            const promoCards = promotions.map(promo => {
+                let isActive = false;
+                if (promo.time) {
+                    const [start, end] = promo.time.split(' - ');
+                    if (currentTime >= start && currentTime <= end) {
+                        isActive = true;
+                    }
+                } else {
+                    isActive = true; // Promo tanpa jam, aktif selalu
+                }
+                
+                return `
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden ${isActive ? 'border-4 border-brand-green-DEFAULT' : 'opacity-70'}">
+                    <div class="p-6">
+                        ${isActive ? `<span class="inline-block bg-brand-green-DEFAULT text-white text-xs font-bold px-3 py-1 rounded-full mb-3">SEDANG BERLANGSUNG</span>` : `<span class="inline-block bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full mb-3">Belum Aktif</span>`}
+                        
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">${promo.title}</h3>
+                        <p class="text-gray-600 mb-4">${promo.description}</p>
+                        
+                        ${promo.originalPrice ? `
+                        <div class="flex items-baseline space-x-2 mb-4">
+                            <p class="text-lg text-gray-500 line-through">${formatCurrency(promo.originalPrice)}</p>
+                            <p class="text-3xl font-bold text-brand-green-dark">${formatCurrency(promo.promoPrice)}</p>
+                        </div>
+                        ` : ''}
+                        
+                        <p class="text-sm font-medium text-brand-blue-dark mb-5">
+                            Berlaku: ${promo.time ? `Jam ${promo.time}` : 'Sepanjang hari'}
+                        </p>
+                        
+                        <button onclick="handleUsePromo(${promo.id})" class="w-full py-3 px-6 rounded-lg text-base font-semibold text-white transition-colors duration-300 ${
+                            isActive ? 'bg-brand-blue-DEFAULT hover:bg-brand-blue-dark' : 'bg-gray-400 cursor-not-allowed'
+                        }" ${!isActive ? 'disabled' : ''}>
+                            Gunakan Promo
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${promoCards}
+                </div>
+            `;
+        }
+
+        // --- 4c. RENDER DASHBOARD PENJUAL ---
+        
+        function renderPenjualDashboard() {
+            // Asumsi penjual login dengan username = nama kantin
+            // Di aplikasi nyata, penjual akan punya ID. Kita simulasi saja.
+            // Kita cari kantin berdasarkan nama user (case-insensitive)
+            const mySellerProfile = sellers.find(s => s.name.toLowerCase() === currentUser.username.toLowerCase());
+            
+            // Jika tidak ketemu, kita anggap dia penjual pertama (Bu Susi)
+            const sellerId = mySellerProfile ? mySellerProfile.id : 1;
+            
+            // Simpan sellerId di state untuk kemudahan
+            currentUser.sellerId = sellerId;
+            
+            const subpage = currentView.subpage || 'pesanan';
+            
+            const sidebar = `
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'pesanan' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'pesanan' ? 'bg-brand-green-light text-brand-green-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Pesanan Masuk</span>
+                </a>
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'menu' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'menu' ? 'bg-brand-green-light text-brand-green-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Kelola Menu Saya</span>
+                </a>
+                <a href="#" onclick="navigateTo('dashboard', { subpage: 'laporan' })" class="flex items-center px-4 py-3 rounded-lg ${subpage === 'laporan' ? 'bg-brand-green-light text-brand-green-dark' : 'text-gray-600 hover:bg-gray-100'}">
+                    <span class="font-medium">Laporan Sederhana</span>
+                </a>
+            `;
+            
+            let content = '';
+            let title = '';
+            
+            switch (subpage) {
+                case 'pesanan':
+                    title = 'Pesanan Masuk';
+                    content = renderPenjualPesanan(sellerId);
+                    break;
+                case 'menu':
+                    title = 'Kelola Menu Saya';
+                    content = renderPenjualMenu(sellerId);
+                    break;
+                case 'laporan':
+                    title = 'Laporan Sederhana';
+                    content = renderPenjualLaporan(sellerId);
+                    break;
+                default:
+                    title = 'Pesanan Masuk';
+                    content = renderPenjualPesanan(sellerId);
+            }
+            
+            return renderDashboardShell(title, sidebar, content);
+        }
+        
+        function renderPenjualPesanan(sellerId) {
+            const myOrders = orders.filter(o => o.sellerId === sellerId && o.status !== 'Selesai').sort((a,b) => b.id - a.id);
+            
+            const orderCards = myOrders.map(order => {
+                const itemsList = order.items.map(i => `
+                    <li class="flex justify-between text-sm">
+                        <span>${i.name} (x${i.qty})</span>
+                        <span class="font-medium">${formatCurrency(i.price * i.qty)}</span>
+                    </li>
+                `).join('');
+                
+                const statusOptions = orderStatuses.map(status => 
+                    `<option value="${status}" ${order.status === status ? 'selected' : ''}>${status}</option>`
+                ).join('');
+                
+                return `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-5 border-b">
+                        <p class="text-sm text-gray-500">Pesanan #${order.id}</p>
+                        <p class="font-semibold text-gray-800">Pemesan: ${order.userId} (${order.userRole})</p>
+                    </div>
+                    <div class="p-5">
+                        <ul class="space-y-2 mb-4">
+                            ${itemsList}
+                        </ul>
+                        <div class="border-t pt-3 mb-4 flex justify-between items-center">
+                            <span class="font-semibold text-gray-700">Total</span>
+                            <span class="text-lg font-bold text-brand-green-DEFAULT">${formatCurrency(order.total)}</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <label for="status-${order.id}" class="text-sm font-medium text-gray-700">Ubah Status:</label>
+                            <select id="status-${order.id}" onchange="handleUpdateStatus(${order.id}, this.value)" 
+                                class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-brand-green-DEFAULT focus:border-brand-green-DEFAULT">
+                                ${statusOptions}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${myOrders.length > 0 ? orderCards : '<p class="text-gray-500 col-span-full text-center">Tidak ada pesanan masuk saat ini.</p>'}
+                </div>
+            `;
+        }
+        
+        function renderPenjualMenu(sellerId) {
+            const myMenus = menus.filter(m => m.sellerId === sellerId);
+
+            const tableRows = myMenus.map(menu => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-6 py-4">${menu.id}</td>
+                    <td class="px-6 py-4 font-medium">${menu.name}</td>
+                    <td class="px-6 py-4">${formatCurrency(menu.price)}</td>
+                    <td class="px-6 py-4">${menu.stock}</td>
+                    <td class="px-6 py-4 capitalize">${menu.category}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="handleEditMenu(${menu.id})" class="text-brand-blue-DEFAULT hover:text-brand-blue-dark font-medium mr-4">Edit</button>
+                        <button onclick="handleDeleteMenu(${menu.id})" class="text-red-500 hover:text-red-700 font-medium">Hapus</button>
+                    </td>
+                </tr>
+            `).join('');
+        
+            return `
+                <div class="flex justify-end mb-4">
+                    <button onclick="handleAddMenu()" class="bg-brand-green-DEFAULT text-white py-2 px-5 rounded-lg shadow hover:bg-brand-green-dark transition-colors">
+                        + Tambah Menu
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow overflow-x-auto">
+                    <table class="w-full table-auto min-w-max">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Menu</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${tableRows.length > 0 ? tableRows : '<tr><td colspan="6" class="p-6 text-center text-gray-500">Anda belum memiliki menu.</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderPenjualLaporan(sellerId) {
+            const completedOrders = orders.filter(o => o.sellerId === sellerId && o.status === 'Selesai');
+            const totalPendapatan = completedOrders.reduce((sum, order) => sum + order.total, 0);
+
+            const tableRows = completedOrders.map(order => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-6 py-4">${order.id}</td>
+                    <td class="px-6 py-4 font-medium">${order.userId}</td>
+                    <td class="px-6 py-4">${formatCurrency(order.total)}</td>
+                    <td class="px-6 py-4 text-green-600 font-medium">Selesai</td>
+                </tr>
+            `).join('');
+        
+            return `
+                <div class="mb-6 p-6 bg-brand-green-light rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-brand-green-dark">Total Pendapatan (Selesai)</h3>
+                    <p class="text-3xl font-bold text-brand-green-dark mt-2">${formatCurrency(totalPendapatan)}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow overflow-x-auto">
+                    <h4 class="text-xl font-semibold p-4 border-b">Riwayat Transaksi Selesai</h4>
+                    <table class="w-full table-auto min-w-max">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Pesanan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pemesan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${tableRows.length > 0 ? tableRows : '<tr><td colspan="4" class="p-6 text-center text-gray-500">Belum ada transaksi selesai.</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // --- 5. EVENT HANDLERS ---
+        
+        /**
+         * Menangani submit form login
+         */
+        window.handleLogin = function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const role = document.getElementById('role').value;
+            // Password tidak divalidasi, sesuai permintaan
+            
+            if (!username) {
+                showToast('Username tidak boleh kosong', 'error');
+                return;
+            }
+            
+            currentUser = { username, role };
+            
+            // Tentukan halaman default berdasarkan role
+            let defaultSubpage = 'menu'; // Default umum jika tidak ada role
+            if (role === 'Admin') {
+                defaultSubpage = 'penjual';
+            } else if (role === 'Siswa' || role === 'Guru') {
+                defaultSubpage = 'pesanan'; // Sesuai permintaan: default ke Pesanan Aktif
+            } else if (role === 'Penjual') {
+                defaultSubpage = 'pesanan';
+            }
+            
+            navigateTo('dashboard', { subpage: defaultSubpage });
+        }
+        
+        /**
+         * Menangani logout
+         */
+        window.handleLogout = function() {
+            currentUser = null;
+            navigateTo('login');
+        }
+        
+        // --- Handlers: Admin ---
+        
+        window.handleAddSeller = function() {
+            const content = `
+                <div class="space-y-4">
+                    <div>
+                        <label for="sellerName" class="block text-sm font-medium text-gray-700">Nama Penjual</label>
+                        <input type="text" id="sellerName" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-brand-blue-DEFAULT focus:border-brand-blue-DEFAULT">
+                    </div>
+                </div>
+            `;
+            const footer = `
+                <button onclick="closeModal()" class="py-2 px-5 rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-50">Batal</button>
+                <button onclick="submitAddSeller()" class="py-2 px-5 rounded-lg text-white bg-brand-blue-DEFAULT hover:bg-brand-blue-dark">Simpan</button>
+            `;
+            showModal('Tambah Penjual Baru', content, footer);
+        }
+
+        window.submitAddSeller = function() {
+            const name = document.getElementById('sellerName').value;
+            if (name) {
+                const newId = sellers.length > 0 ? Math.max(...sellers.map(s => s.id)) + 1 : 1;
+                sellers.push({ id: newId, name: name });
+                showToast('Penjual berhasil ditambahkan', 'success');
+                closeModal();
+                renderApp();
+            } else {
+                showToast('Nama penjual tidak boleh kosong', 'error');
+            }
+        }
+        
+        window.handleEditSeller = function(id) {
+            const seller = sellers.find(s => s.id === id);
+            if (!seller) return;
+            
+            const content = `
+                <div class="space-y-4">
+                    <div>
+                        <label for="sellerName" class="block text-sm font-medium text-gray-700">Nama Penjual</label>
+                        <input type="text" id="sellerName" value="${seller.name}" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-brand-blue-DEFAULT focus:border-brand-blue-DEFAULT">
+                    </div>
+                </div>
+            `;
+            const footer = `
+                <button onclick="closeModal()" class="py-2 px-5 rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-50">Batal</button>
+                <button onclick="submitEditSeller(${id})" class="py-2 px-5 rounded-lg text-white bg-brand-blue-DEFAULT hover:bg-brand-blue-dark">Simpan Perubahan</button>
+            `;
+            showModal('Edit Penjual', content, footer);
+        }
+        
+        window.submitEditSeller = function(id) {
+            const name = document.getElementById('sellerName').value;
+            if (name) {
+                const sellerIndex = sellers.findIndex(s => s.id === id);
+                if (sellerIndex > -1) {
+                    sellers[sellerIndex].name = name;
+                    showToast('Penjual berhasil diperbarui', 'success');
+                    closeModal();
+                    renderApp();
+                }
+            } else {
+                showToast('Nama penjual tidak boleh kosong', 'error');
+            }
+        }
+        
+        window.handleDeleteSeller = function(id) {
+            // Seharusnya ada konfirmasi, tapi kita buat simpel
+            sellers = sellers.filter(s => s.id !== id);
+            // Hapus juga menu yang terkait (opsional, tapi bagus)
+            menus = menus.filter(m => m.sellerId !== id);
+            showToast('Penjual berhasil dihapus', 'success');
+            renderApp();
+        }
+        
+        window.handleAddMenu = function() {
+            const sellerOptions = sellers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            const isPenjual = currentUser.role === 'Penjual';
+            
+            const content = `
+                <form id="menu-form" class="space-y-4">
+                    <div>
+                        <label for="menuName" class="form-label">Nama Menu</label>
+                        <input type="text" id="menuName" class="form-input">
+                    </div>
+                    ${!isPenjual ? `
+                    <div>
+                        <label for="menuSeller" class="form-label">Penjual</label>
+                        <select id="menuSeller" class="form-input">${sellerOptions}</select>
+                    </div>` : ''}
+                    <div>
+                        <label for="menuPrice" class="form-label">Harga</label>
+                        <input type="number" id="menuPrice" class="form-input">
+                    </div>
+                    <div>
+                        <label for="menuStock" class="form-label">Stok</label>
+                        <input type="number" id="menuStock" class="form-input">
+                    </div>
+                    <div>
+                        <label for="menuCategory" class="form-label">Kategori</label>
+                        <select id="menuCategory" class="form-input">
+                            <option value="makanan">Makanan</option>
+                            <option value="minuman">Minuman</option>
+                            <option value="snack">Snack</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="menuImage" class="form-label">URL Gambar</label>
+                        <input type="text" id="menuImage" class="form-input" placeholder="https://placehold.co/...">
+                    </div>
+                </form>
+            `;
+            const footer = `
+                <button onclick="closeModal()" class="py-2 px-5 rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-50">Batal</button>
+                <button onclick="submitAddMenu()" class="py-2 px-5 rounded-lg text-white bg-brand-green-DEFAULT hover:bg-brand-green-dark">Simpan</button>
+            `;
+            showModal('Tambah Menu Baru', content, footer);
+        }
+        
+        window.submitAddMenu = function() {
+            const name = document.getElementById('menuName').value;
+            const price = parseInt(document.getElementById('menuPrice').value);
+            const stock = parseInt(document.getElementById('menuStock').value);
+            const category = document.getElementById('menuCategory').value;
+            const image = document.getElementById('menuImage').value || 'https://placehold.co/600x400/E2E8F0/94A3B8?text=Menu';
+            
+            let sellerId;
+            if (currentUser.role === 'Penjual') {
+                sellerId = currentUser.sellerId;
+            } else {
+                sellerId = parseInt(document.getElementById('menuSeller').value);
+            }
+            
+            if (name && price > 0 && stock >= 0 && category && sellerId) {
+                const newId = menus.length > 0 ? Math.max(...menus.map(m => m.id)) + 1 : 1;
+                menus.push({ id: newId, sellerId, name, price, stock, category, image });
+                showToast('Menu berhasil ditambahkan', 'success');
+                closeModal();
+                renderApp();
+            } else {
+                showToast('Harap isi semua data dengan benar', 'error');
+            }
+        }
+        
+        window.handleEditMenu = function(id) {
+            const menu = menus.find(m => m.id === id);
+            if (!menu) return;
+
+            const sellerOptions = sellers.map(s => `<option value="${s.id}" ${menu.sellerId === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
+            const isPenjual = currentUser.role === 'Penjual';
+
+            const content = `
+                <form id="menu-form" class="space-y-4">
+                    <div>
+                        <label for="menuName" class="form-label">Nama Menu</label>
+                        <input type="text" id="menuName" class="form-input" value="${menu.name}">
+                    </div>
+                    ${!isPenjual ? `
+                    <div>
+                        <label for="menuSeller" class="form-label">Penjual</label>
+                        <select id="menuSeller" class="form-input">${sellerOptions}</select>
+                    </div>` : ''}
+                    <div>
+                        <label for="menuPrice" class="form-label">Harga</label>
+                        <input type="number" id="menuPrice" class="form-input" value="${menu.price}">
+                    </div>
+                    <div>
+                        <label for="menuStock" class="form-label">Stok</label>
+                        <input type="number" id="menuStock" class="form-input" value="${menu.stock}">
+                    </div>
+                    <div>
+                        <label for="menuCategory" class="form-label">Kategori</label>
+                        <select id="menuCategory" class="form-input">
+                            <option value="makanan" ${menu.category === 'makanan' ? 'selected' : ''}>Makanan</option>
+                            <option value="minuman" ${menu.category === 'minuman' ? 'selected' : ''}>Minuman</option>
+                            <option value="snack" ${menu.category === 'snack' ? 'selected' : ''}>Snack</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="menuImage" class="form-label">URL Gambar</label>
+                        <input type="text" id="menuImage" class="form-input" value="${menu.image}">
+                    </div>
+                </form>
+            `;
+            const footer = `
+                <button onclick="closeModal()" class="py-2 px-5 rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-50">Batal</button>
+                <button onclick="submitEditMenu(${id})" class="py-2 px-5 rounded-lg text-white bg-brand-green-DEFAULT hover:bg-brand-green-dark">Simpan Perubahan</button>
+            `;
+            showModal('Edit Menu', content, footer);
+        }
+        
+        window.submitEditMenu = function(id) {
+            const menuIndex = menus.findIndex(m => m.id === id);
+            if (menuIndex === -1) return;
+            
+            const name = document.getElementById('menuName').value;
+            const price = parseInt(document.getElementById('menuPrice').value);
+            const stock = parseInt(document.getElementById('menuStock').value);
+            const category = document.getElementById('menuCategory').value;
+            const image = document.getElementById('menuImage').value;
+            
+            let sellerId;
+            if (currentUser.role === 'Penjual') {
+                sellerId = currentUser.sellerId;
+            } else {
+                sellerId = parseInt(document.getElementById('menuSeller').value);
+            }
+            
+            if (name && price > 0 && stock >= 0 && category && sellerId) {
+                menus[menuIndex] = { ...menus[menuIndex], sellerId, name, price, stock, category, image };
+                showToast('Menu berhasil diperbarui', 'success');
+                closeModal();
+                renderApp();
+            } else {
+                showToast('Harap isi semua data dengan benar', 'error');
+            }
+        }
+        
+        window.handleDeleteMenu = function(id) {
+            menus = menus.filter(m => m.id !== id);
+            showToast('Menu berhasil dihapus', 'success');
+            renderApp();
+        }
+
+        // --- Handlers: Siswa & Guru ---
+        
+        /* * Fungsi handleAddToCart, handleShowCart, updateCartQty, dan handleCheckout 
+         * dihapus dan diganti dengan handleDirectOrder
+        */
+
+        /**
+         * Menangani pemesanan langsung saat tombol "Pesan Sekarang" diklik
+         */
+        window.handleDirectOrder = function(menuId) {
+            const menu = menus.find(m => m.id === menuId);
+            if (!menu || menu.stock === 0) {
+                showToast('Stok habis', 'error');
+                return;
+            }
+            
+            // 1. Kurangi stok
+            const menuIndex = menus.findIndex(m => m.id === menuId);
+            if (menuIndex > -1) {
+                if (menus[menuIndex].stock > 0) {
+                    menus[menuIndex].stock -= 1;
+                } else {
+                    showToast('Stok sudah habis', 'error');
+                    renderApp(); // Render ulang untuk update tampilan tombol
+                    return;
+                }
+            } else {
+                return; // Menu tidak ditemukan
+            }
+
+            // 2. Buat ID pesanan baru
+            const newOrderId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1;
+
+            // 3. Buat objek pesanan
+            const newOrder = {
+                id: newOrderId,
+                userId: currentUser.username,
+                userRole: currentUser.role,
+                sellerId: menu.sellerId,
+                items: [{ menuId: menu.id, name: menu.name, price: menu.price, qty: 1 }],
+                total: menu.price,
+                status: 'Diterima' // Status awal
+            };
+
+            // 4. Tambahkan ke daftar pesanan
+            orders.push(newOrder);
+
+            // 5. Beri notifikasi dan pindah halaman
+            showToast('Pesanan berhasil ditambahkan!', 'success');
+            navigateTo('dashboard', { subpage: 'pesanan' }); // Langsung ke halaman pesanan
+        }
+        
+        window.handleUsePromo = function(promoId) {
+            showToast('Fitur promo sedang dikembangkan', 'success');
+            // Logika promo bisa ditambahkan di sini
+            // Misalnya, navigasi ke menu dengan filter promo
+            navigateTo('dashboard', { subpage: 'menu' });
+        }
+
+        // --- Handlers: Penjual ---
+        
+        window.handleUpdateStatus = function(orderId, newStatus) {
+            const orderIndex = orders.findIndex(o => o.id === orderId);
+            if (orderIndex > -1) {
+                orders[orderIndex].status = newStatus;
+                showToast(`Status pesanan #${orderId} diubah menjadi ${newStatus}`, 'success');
+                renderApp();
+            }
+        }
+
+
+        // --- 6. RENDER UTAMA APLIKASI ---
+        
+        /**
+         * Fungsi render utama, dipanggil setiap ada perubahan state
+         */
+        function renderApp() {
+            const app = document.getElementById('app');
+            app.innerHTML = ''; // Kosongkan layar
+            
+            // Tambahkan style untuk form-input
+            // Diletakkan di sini agar bisa di-inject setelah config tailwind
+            const formStyle = document.getElementById('form-style');
+            if (!formStyle) {
+                const style = document.createElement('style');
+                style.id = 'form-style';
+                style.innerHTML = `
+                    .form-label {
+                        display: block;
+                        margin-bottom: 0.25rem;
+                        font-size: 0.875rem;
+                        line-height: 1.25rem;
+                        font-weight: 500;
+                        color: #374151;
+                    }
+                    .form-input {
+                        margin-top: 0.25rem;
+                        display: block;
+                        width: 100%;
+                        padding-left: 1rem;
+                        padding-right: 1rem;
+                        padding-top: 0.75rem;
+                        padding-bottom: 0.75rem;
+                        border-width: 1px;
+                        border-color: #D1D5DB;
+                        border-radius: 0.5rem;
+                        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                    }
+                    .form-input:focus {
+                        outline: 2px solid transparent;
+                        outline-offset: 2px;
+                        --tw-ring-color: #0284C7;
+                        border-color: #0284C7;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            if (!currentUser) {
+                // Tampilkan halaman login
+                app.innerHTML = renderLogin();
+                // Tambahkan event listener ke form login
+                document.getElementById('login-form').addEventListener('submit', window.handleLogin);
+            } else {
+                // Tampilkan dashboard sesuai role
+                let dashboardHtml = '';
+                switch (currentUser.role) {
+                    case 'Admin':
+                        dashboardHtml = renderAdminDashboard();
+                        break;
+                    case 'Siswa':
+                    case 'Guru':
+                        dashboardHtml = renderSiswaGuruDashboard();
+                        break;
+                    case 'Penjual':
+                        dashboardHtml = renderPenjualDashboard();
+                        break;
+                }
+                app.innerHTML = dashboardHtml;
+                // Tambahkan event listener ke tombol logout
+                document.getElementById('logout-button').addEventListener('click', window.handleLogout);
+            }
+        }
+        
+        // --- 7. INISIALISASI ---
+        // Render aplikasi saat halaman pertama kali dimuat
+        document.addEventListener('DOMContentLoaded', renderApp);
+
+    </script>
+</body>
+</html>
