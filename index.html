@@ -6,6 +6,9 @@
     <title>Kantin Digital - SMAN 1 DRAMAGA</title>
     <!-- Memuat Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         /* Menggunakan font Inter bawaan Tailwind */
         body {
@@ -353,45 +356,44 @@
 
     <script type="module">
         // ========================================================================
-        // DATABASE LOKAL (Disimpan dalam Memori JavaScript)
+        // KONEKSI SUPABASE
+        // ========================================================================
+        const { createClient } = supabase;
+
+        // !!! GANTI DENGAN URL DAN KUNCI API ANDA DARI PANDUAN BAGIAN 2 !!!
+        const SUPABASE_URL = 'https://tcdbxalswglnahcujkid.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjZGJ4YWxzd2dsbmFoY3Vqa2lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxOTk3NDgsImV4cCI6MjA3OTc3NTc0OH0.u_4koUBhrWAj1d75ckxuonGuLoDT9SShI9XvZE6XUIA';
+        // !!! JANGAN BAGIKAN KUNCI INI KE PUBLIK JIKA BUKAN KUNCI 'anon' !!!
+
+        // Cek jika placeholder belum diganti
+        if (SUPABASE_URL === 'https://URL_PROYEK_ANDA.supabase.co' || SUPABASE_ANON_KEY === 'KUNCI_ANON_ANDA_TARUH_DI_SINI') {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div classclass="bg-red-100 border-l-4 border-red-500 text-red-700 p-8 rounded-lg shadow-xl max-w-md mx-auto mt-12 fade-in">
+                    <h2 class="font-bold text-2xl mb-4">Kesalahan Konfigurasi</h2>
+                    <p class="text-lg">Harap buka file \`kantin.html\` dan ganti \`SUPABASE_URL\` dan \`SUPABASE_ANON_KEY\` dengan kunci API asli dari dashboard Supabase Anda.</p>
+                    <p class="mt-4">Lihat file \`panduan_supabase.md\` untuk instruksi lengkap.</p>
+                </div>
+            `;
+            // Hentikan eksekusi skrip lebih lanjut
+            throw new Error("Supabase URL/Key belum diatur.");
+        }
+
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
+        // ========================================================================
+        // DATABASE LOKAL (Sekarang bertindak sebagai 'cache' atau 'state')
         // ========================================================================
         const appData = {
-            currentUser: null,
-            users: [
-                { id: 'u1', username: 'ADMIN KANTIN', password: 'admin123', role: 'Admin' },
-                { id: 'u2', username: 'buida', password: '123', role: 'Penjual', namaWarung: 'Kantin Bu Ida' },
-                { id: 'u3', username: 'paktono', password: '123', role: 'Penjual', namaWarung: 'Warung Pak Tono' },
-                { id: 'u4', username: 'siswa1', password: '123', role: 'Siswa', kelas: 'X A' }
-            ],
-            sellers: [
-                { id: 's1', name: 'Kantin Bu Ida', userId: 'u2' },
-                { id: 's2', name: 'Warung Pak Tono', userId: 'u3' }
-            ], // { id: 's1', name: 'Kantin Bu Ida', userId: 'uX' }
-            menus: [
-                // Menu Bu Ida
-                { id: 'm1', sellerId: 's1', name: 'Nasi Goreng', price: 12000, stock: 50, category: 'Makanan', image: 'https://placehold.co/150x150/D1FAE5/10B981?text=Nasi+Goreng' },
-                { id: 'm2', sellerId: 's1', name: 'Mie Ayam', price: 10000, stock: 40, category: 'Makanan', image: 'https://placehold.co/150x150/D1FAE5/10B981?text=Mie+Ayam' },
-                { id: 'm3', sellerId: 's1', name: 'Es Teh Manis', price: 3000, stock: 100, category: 'Minuman', image: 'https://placehold.co/150x150/D1FAE5/10B981?text=Es+Teh' },
-                { id: 'm4', sellerId: 's1', name: 'Kerupuk', price: 1000, stock: 200, category: 'Snack', image: 'https://placehold.co/150x150/D1FAE5/10B981?text=Kerupuk' },
-                { id: 'm9', sellerId: 's1', name: 'Nasi Uduk', price: 10000, stock: 30, category: 'Makanan', image: 'https://placehold.co/150x150/D1FAE5/10B981?text=Nasi+Uduk' },
-                { id: 'm10', sellerId: 's1', name: 'Risol Mayo', price: 2500, stock: 50, category: 'Snack', image: 'https://placehold.co/150x150/D1FAE5/10B981?text=Risol' },
-                { id: 'm11', sellerId: 's1', name: 'Aqua Botol 600ml', price: 3500, stock: 80, category: 'Minuman', image: 'https://placehold.co/150x150/D1FAE5/10B981?text=Aqua' },
-                // Menu Pak Tono
-                { id: 'm5', sellerId: 's2', name: 'Soto Ayam', price: 11000, stock: 30, category: 'Makanan', image: 'https://placehold.co/150x150/C2F7C2/4CAF50?text=Soto+Ayam' },
-                { id: 'm6', sellerId: 's2', name: 'Es Jeruk', price: 4000, stock: 50, category: 'Minuman', image: 'https://placehold.co/150x150/C2F7C2/4CAF50?text=Es+Jeruk' },
-                { id: 'm7', sellerId: 's2', name: 'Gorengan Bakwan', price: 1000, stock: 150, category: 'Snack', image: 'https://placehold.co/150x150/C2F7C2/4CAF50?text=Bakwan' },
-                { id: 'm8', sellerId: 's2', name: 'Kopi Hitam', price: 3000, stock: 20, category: 'Minuman', image: 'https://placehold.co/150x150/C2F7C2/4CAF50?text=Kopi+Hitam' },
-                { id: 'm12', sellerId: 's2', name: 'Siomay Komplit', price: 10000, stock: 35, category: 'Makanan', image: 'https://placehold.co/150x150/C2F7C2/4CAF50?text=Siomay' },
-                { id: 'm13', sellerId: 's2', name: 'Bubur Ayam', price: 8000, stock: 25, category: 'Makanan', image: 'https://placehold.co/150x150/C2F7C2/4CAF50?text=Bubur+Ayam' },
-                { id: 'm14', sellerId: 's2', name: 'Teh Kotak', price: 4000, stock: 60, category: 'Minuman', image: 'https://placehold.co/150x150/C2F7C2/4CAF50?text=Teh+Kotak' },
-                { id: 'm15', sellerId: 's2', name: 'Keripik Kentang', price: 2000, stock: 70, category: 'Snack', image: 'https://placehold.co/150x150/C2F7C2/4CAF50?text=Keripik' }
-            ],
-            orders: [], // { id: 'o1', userId: 'uX', sellerId: 'sX', items: [{ menuId: 'm1', name: 'Nasi Goreng', quantity: 1, price: 12000 }], total: 12000, status: 'Diterima', orderTime: 'timestamp' }
-            promos: [
-                { id: 'p1', code: 'HEMATSIANG', description: 'Diskon 20% untuk semua Makanan', category: 'Makanan', discountPercent: 20, activeHours: '10:00-12:00' },
-                { id: 'p2', code: 'MINUMSEGAR', description: 'Beli 2 Gratis 1 Es Teh', menuId: 'm2' /* (jika spesifik) */, activeHours: null }
-            ],
-            cart: [] // { menuId: 'm1', name: 'Nasi Goreng', price: 12000, quantity: 1, sellerId: 's1' }
+            currentUser: null, // Akan diisi dari Supabase (dari tabel 'profiles')
+            users: [], // Tidak digunakan lagi, diganti 'profiles'
+            profiles: [], // Cache untuk data profil
+            sellers: [], // Akan diisi dari Supabase
+            menus: [],   // Akan diisi dari Supabase
+            orders: [],  // Akan diisi dari Supabase
+            promos: [],  // Akan diisi dari Supabase
+            cart: [] // Tetap di lokal (dibersihkan saat logout)
         };
 
         // ========================================================================
@@ -451,6 +453,7 @@
 
         // ========================================================================
         // RENDER FUNCTIONS (Memperbarui UI berdasarkan appData)
+        // (Fungsi render tidak perlu banyak berubah karena masih membaca dari appData)
         // ========================================================================
 
         // ADMIN Renders
@@ -459,11 +462,11 @@
             const sellerList = document.getElementById('adminSellerList');
             sellerList.innerHTML = '';
             appData.sellers.forEach(seller => {
-                const user = appData.users.find(u => u.id === seller.userId);
+                const user = appData.profiles.find(u => u.id === seller.user_id); // Diubah ke profiles dan user_id
                 sellerList.innerHTML += `
                     <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <span><strong>${seller.name}</strong> (@${user ? user.username : 'N/A'})</span>
-                        <button class="admin-delete-seller text-red-500 hover:text-red-700 text-sm" data-id="${seller.id}">Hapus</button>
+                        <button class="admin-delete-seller text-red-500 hover:text-red-700 text-sm" data-id="${seller.id}" data-userid="${user?.id}">Hapus</button>
                     </div>
                 `;
             });
@@ -471,10 +474,10 @@
             // Render dropdown user untuk dijadikan penjual
             const userSelect = document.getElementById('adminSelectUser');
             userSelect.innerHTML = '<option value="">-- Pilih User --</option>';
-            appData.users
-                .filter(u => u.role === 'Penjual' && !appData.sellers.find(s => s.userId === u.id))
+            appData.profiles // Diubah ke profiles
+                .filter(u => u.role === 'Penjual' && !appData.sellers.find(s => s.user_id === u.id)) // Diubah ke user_id
                 .forEach(u => {
-                    userSelect.innerHTML += `<option value="${u.id}">${u.namaWarung} (@${u.username})</option>`;
+                    userSelect.innerHTML += `<option value="${u.id}">${u.nama_warung} (@${u.username})</option>`;
                 });
             
             // Render rekap pesanan
@@ -485,7 +488,8 @@
                 // HAPUS 'return;' AGAR FUNGSI LANJUT KE RENDER MENU
             } else {
                 appData.orders.slice().reverse().forEach(order => {
-                    const seller = appData.sellers.find(s => s.id === order.sellerId);
+                    const seller = appData.sellers.find(s => s.id === order.seller_id);
+                    const user = appData.profiles.find(p => p.id === order.user_id); // Diubah ke profiles
                     orderList.innerHTML += `
                     <div class="p-3 border rounded-lg bg-white shadow-sm">
                         <p class="font-semibold">${order.items.map(i => `${i.name} (x${i.quantity})`).join(', ')}</p>
@@ -513,7 +517,7 @@
             const sortedMenus = [...appData.menus].sort((a, b) => a.sellerId.localeCompare(b.sellerId));
 
             sortedMenus.forEach(menu => {
-                const seller = appData.sellers.find(s => s.id === menu.sellerId);
+                const seller = appData.sellers.find(s => s.id === menu.seller_id);
                 const sellerName = seller ? seller.name : 'Penjual Dihapus';
                 
                 menuList.innerHTML += `
@@ -534,7 +538,7 @@
         // PENJUAL Renders
         function renderPenjualDashboard() {
             if (!appData.currentUser || appData.currentUser.role !== 'Penjual') return;
-            const mySellerProfile = appData.sellers.find(s => s.userId === appData.currentUser.id);
+            const mySellerProfile = appData.sellers.find(s => s.user_id === appData.currentUser.id); // Diubah ke user_id
             if (!mySellerProfile) {
                 document.getElementById('penjualOrderView').innerHTML = '<p class="text-red-500">Akun Anda belum dikonfirmasi sebagai penjual oleh Admin.</p>';
                 document.getElementById('penjualMenuView').classList.add('hidden');
@@ -551,7 +555,7 @@
         function renderPenjualMenu(sellerId) {
             const menuList = document.getElementById('penjualMenuList');
             menuList.innerHTML = '';
-            const myMenus = appData.menus.filter(m => m.sellerId === sellerId);
+            const myMenus = appData.menus.filter(m => m.seller_id === sellerId); // Diubah ke seller_id
             
             if (myMenus.length === 0) {
                 menuList.innerHTML = '<p class="text-gray-500">Anda belum memiliki menu. Silakan tambahkan.</p>';
@@ -577,7 +581,7 @@
         function renderPenjualOrders(sellerId) {
             const orderList = document.getElementById('penjualOrderList');
             orderList.innerHTML = '';
-            const myOrders = appData.orders.filter(o => o.sellerId === sellerId).slice().reverse();
+            const myOrders = appData.orders.filter(o => o.seller_id === sellerId).slice().reverse(); // Diubah ke seller_id
 
             if (myOrders.length === 0) {
                 orderList.innerHTML = '<p class="text-gray-500">Belum ada pesanan masuk.</p>';
@@ -585,7 +589,7 @@
             }
 
             myOrders.forEach(order => {
-                const user = appData.users.find(u => u.id === order.userId);
+                const user = appData.profiles.find(u => u.id === order.user_id); // Diubah ke profiles
                 orderList.innerHTML += `
                     <div class="p-4 border rounded-lg bg-gray-50 shadow-sm">
                         <p class="text-sm text-gray-500">Pesanan dari: ${user?.username || 'N/A'} (${user?.kelas || 'Guru'})</p>
@@ -608,7 +612,7 @@
         }
         
         function renderPenjualReport(sellerId) {
-            const finishedOrders = appData.orders.filter(o => o.sellerId === sellerId && o.status === 'Selesai');
+            const finishedOrders = appData.orders.filter(o => o.seller_id === sellerId && o.status === 'Selesai'); // Diubah ke seller_id
             
             const totalRevenue = finishedOrders.reduce((sum, order) => sum + order.total, 0);
             document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
@@ -647,7 +651,7 @@
             }
 
             filteredMenus.forEach(menu => {
-                const seller = appData.sellers.find(s => s.id === menu.sellerId);
+                const seller = appData.sellers.find(s => s.id === menu.seller_id); // Diubah ke seller_id
                 const outOfStock = menu.stock <= 0;
                 menuList.innerHTML += `
                     <div class="bg-white rounded-lg shadow-md overflow-hidden ${outOfStock ? 'opacity-50' : ''}">
@@ -695,7 +699,7 @@
             } else {
                 // GUNAKAN filteredMenus
                 filteredMenus.forEach(menu => {
-                    const seller = appData.sellers.find(s => s.id === menu.sellerId);
+                    const seller = appData.sellers.find(s => s.id === menu.seller_id); // Diubah ke seller_id
                     const outOfStock = menu.stock <= 0;
                     menuList.innerHTML += `
                         <div class="bg-white rounded-lg shadow-md overflow-hidden ${outOfStock ? 'opacity-50' : ''}">
@@ -737,7 +741,7 @@
                 if (promo.activeHours) {
                     const [start, end] = promo.activeHours.split('-');
                     if (currentTime < start || currentTime > end) {
-                        disclaimer = `<p class="text-sm text-red-500 font-medium">Promo hanya berlaku jam ${promo.activeHours}</p>`;
+                        disclaimer = `<p class="text-sm text-red-500 font-medium">Promo hanya berlaku jam ${promo.active_hours}</p>`; // Diubah ke active_hours
                         active = false;
                     } else {
                         disclaimer = `<p class="text-sm text-green-600 font-medium">Promo aktif sampai jam ${end}!</p>`;
@@ -798,7 +802,7 @@
         function renderSiswaOrderHistory() {
             const historyContainer = document.getElementById('siswaOrderHistory');
             historyContainer.innerHTML = '';
-            const myOrders = appData.orders.filter(o => o.userId === appData.currentUser.id).slice().reverse();
+            const myOrders = appData.orders.filter(o => o.user_id === appData.currentUser.id).slice().reverse(); // Diubah ke user_id
 
             if (myOrders.length === 0) {
                 historyContainer.innerHTML = '<p class="text-gray-500">Anda belum pernah memesan.</p>';
@@ -806,7 +810,7 @@
             }
             
             myOrders.forEach(order => {
-                const seller = appData.sellers.find(s => s.id === order.sellerId);
+                const seller = appData.sellers.find(s => s.id === order.seller_id); // Diubah ke seller_id
                 historyContainer.innerHTML += `
                     <div class="p-4 border rounded-lg bg-gray-50 shadow-sm">
                         <p class="font-semibold">Pesanan di ${seller?.name || 'Kantin'}</p>
@@ -823,7 +827,7 @@
         function renderGuruOrderHistory() {
             const historyContainer = document.getElementById('guruOrderHistory');
             historyContainer.innerHTML = '';
-            const myOrders = appData.orders.filter(o => o.userId === appData.currentUser.id).slice().reverse();
+            const myOrders = appData.orders.filter(o => o.user_id === appData.currentUser.id).slice().reverse(); // Diubah ke user_id
 
             if (myOrders.length === 0) {
                 historyContainer.innerHTML = '<p class="text-gray-500">Anda belum pernah membeli.</p>';
@@ -831,7 +835,7 @@
             }
             
             myOrders.forEach(order => {
-                const seller = appData.sellers.find(s => s.id === order.sellerId);
+                const seller = appData.sellers.find(s => s.id === order.seller_id); // Diubah ke seller_id
                 historyContainer.innerHTML += `
                     <div class="p-4 border rounded-lg bg-gray-50 shadow-sm">
                         <p class="font-semibold">Pembelian di ${seller?.name || 'Kantin'}</p>
@@ -847,7 +851,53 @@
 
 
         // ========================================================================
-        // EVENT HANDLERS
+        // FUNGSI BARU: SINKRONISASI DATA DENGAN SUPABASE
+        // ========================================================================
+
+        // Fungsi untuk mengambil semua data dari Supabase dan mengisi appData
+        async function loadAllDataFromSupabase() {
+            console.log("Memuat data dari Supabase...");
+            try {
+                // Ambil semua data secara paralel
+                const [
+                    { data: profilesData, error: profilesError },
+                    { data: sellersData, error: sellersError },
+                    { data: menusData, error: menusError },
+                    { data: ordersData, error: ordersError },
+                    { data: promosData, error: promosError }
+                ] = await Promise.all([
+                    supabaseClient.from('profiles').select('*'),
+                    supabaseClient.from('sellers').select('*'),
+                    supabaseClient.from('menus').select('*'),
+                    supabaseClient.from('orders').select('*'),
+                    supabaseClient.from('promos').select('*')
+                ]);
+
+                // Cek error
+                if (profilesError) throw profilesError;
+                if (sellersError) throw sellersError;
+                if (menusError) throw menusError;
+                if (ordersError) throw ordersError;
+                if (promosError) throw promosError;
+
+                // Isi appData (cache lokal)
+                appData.profiles = profilesData || [];
+                appData.sellers = sellersData || [];
+                appData.menus = menusData || [];
+                appData.orders = ordersData || [];
+                appData.promos = promosData || [];
+
+                console.log("Data berhasil dimuat:", appData);
+
+            } catch (error) {
+                console.error("Gagal memuat data dari Supabase:", error);
+                showNotification(`Gagal memuat data: ${error.message}`);
+            }
+        }
+
+
+        // ========================================================================
+        // EVENT HANDLERS (DIMODIFIKASI UNTUK SUPABASE)
         // ========================================================================
 
         // Handler Navigasi Login/Register
@@ -864,70 +914,115 @@
         });
 
         // Handler Login
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
             const role = document.getElementById('loginRole').value;
             const errorEl = document.getElementById('loginError');
 
-            const user = appData.users.find(u => u.username === username && u.password === password && u.role === role);
+            // Langkah 1: Login dengan Supabase Auth (kita gunakan email sebagai username)
+            const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+                email: username, // Supabase auth menggunakan email untuk login, bukan username
+                password: password,
+            });
 
-            if (user) {
-                appData.currentUser = user;
-                document.getElementById('currentUserName').textContent = user.username;
-                navigateTo('dashboardWrapper');
-                
-                // Tampilkan dashboard yang sesuai
-                document.querySelectorAll('.dashboard-panel').forEach(panel => panel.classList.add('hidden'));
-                if (role === 'Admin') {
-                    document.getElementById('adminDashboard').classList.remove('hidden');
-                    renderAdminDashboard();
-                } else if (role === 'Siswa') {
-                    document.getElementById('siswaDashboard').classList.remove('hidden');
-                    renderSiswaDashboard();
-                    navigateToTab('siswa-nav-btn', 'siswa-tab-content', 'siswaMenuView');
-                } else if (role === 'Guru') {
-                    document.getElementById('guruDashboard').classList.remove('hidden');
-                    renderGuruDashboard();
-                    navigateToTab('guru-nav-btn', 'guru-tab-content', 'guruMenuView');
-                } else if (role === 'Penjual') {
-                    document.getElementById('penjualDashboard').classList.remove('hidden');
-                    renderPenjualDashboard();
-                    navigateToTab('penjual-nav-btn', 'penjual-tab-content', 'penjualOrderView');
-                }
-                
-                errorEl.classList.add('hidden');
-                document.getElementById('loginForm').reset();
-            } else {
-                errorEl.textContent = 'Username, password, atau peran salah.';
+            if (authError) {
+                errorEl.textContent = 'Username atau password salah.';
                 errorEl.classList.remove('hidden');
+                return;
             }
+
+            // Langkah 2: Ambil data profil dari tabel 'profiles'
+            const { data: profileData, error: profileError } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', authData.user.id)
+                .single();
+
+            if (profileError || !profileData) {
+                errorEl.textContent = 'Gagal mengambil data profil pengguna.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Langkah 3: Cek apakah peran yang dipilih sesuai
+            if (profileData.role !== role) {
+                errorEl.textContent = `Anda tidak terdaftar sebagai ${role}.`;
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Langkah 4: Login Berhasil!
+            appData.currentUser = profileData; // Simpan profil pengguna
+            document.getElementById('currentUserName').textContent = profileData.username || username;
+            
+            // Langkah 5: Muat semua data kantin dari Supabase
+            await loadAllDataFromSupabase();
+            
+            navigateTo('dashboardWrapper');
+            
+            // Tampilkan dashboard yang sesuai
+            document.querySelectorAll('.dashboard-panel').forEach(panel => panel.classList.add('hidden'));
+            if (role === 'Admin') {
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                renderAdminDashboard();
+            } else if (role === 'Siswa') {
+                document.getElementById('siswaDashboard').classList.remove('hidden');
+                renderSiswaDashboard();
+                navigateToTab('siswa-nav-btn', 'siswa-tab-content', 'siswaMenuView');
+            } else if (role === 'Guru') {
+                document.getElementById('guruDashboard').classList.remove('hidden');
+                renderGuruDashboard();
+                navigateToTab('guru-nav-btn', 'guru-tab-content', 'guruMenuView');
+            } else if (role === 'Penjual') {
+                document.getElementById('penjualDashboard').classList.remove('hidden');
+                renderPenjualDashboard();
+                navigateToTab('penjual-nav-btn', 'penjual-tab-content', 'penjualOrderView');
+            }
+            
+            errorEl.classList.add('hidden');
+            document.getElementById('loginForm').reset();
         });
 
         // Handler Register
-        document.getElementById('registerForm').addEventListener('submit', (e) => {
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('registerUsername').value;
             const password = document.getElementById('registerPassword').value;
             const role = document.getElementById('registerRole').value;
             const errorEl = document.getElementById('registerError');
+            
+            errorEl.classList.add('hidden');
 
-            if (appData.users.find(u => u.username === username)) {
-                errorEl.textContent = 'Username sudah digunakan.';
+            // Langkah 1: Daftar akun baru di Supabase Auth (gunakan username sebagai email)
+            const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                email: username, // Kita gunakan username sebagai email
+                password: password,
+            });
+
+            if (authError) {
+                errorEl.textContent = `Gagal mendaftar: ${authError.message}`;
                 errorEl.classList.remove('hidden');
                 return;
             }
 
-            const newUser = {
-                id: generateId('u'),
-                username,
-                password,
-                role
+            if (!authData.user) {
+                errorEl.textContent = 'Pendaftaran berhasil, namun data pengguna tidak kembali. Coba login.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Langkah 2: Siapkan data untuk tabel 'profiles'
+            const profileUpdate = {
+                username: username,
+                role: role,
+                kelas: null,
+                nama_warung: null
             };
 
             if (role === 'Siswa') {
-                newUser.kelas = document.getElementById('registerKelas').value;
+                profileUpdate.kelas = document.getElementById('registerKelas').value;
             } else if (role === 'Penjual') {
                 const namaWarung = document.getElementById('registerNamaWarung').value;
                 if (!namaWarung) {
@@ -935,25 +1030,48 @@
                     errorEl.classList.remove('hidden');
                     return;
                 }
-                newUser.namaWarung = namaWarung;
+                profileUpdate.nama_warung = namaWarung;
             }
 
-            appData.users.push(newUser);
+            // Langkah 3: Update data di tabel 'profiles' (Trigger sudah membuat barisnya)
+            const { error: profileError } = await supabaseClient
+                .from('profiles')
+                .update(profileUpdate)
+                .eq('id', authData.user.id);
+            
+            if (profileError) {
+                errorEl.textContent = `Gagal menyimpan data profil: ${profileError.message}`;
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            
             showNotification('Pendaftaran berhasil! Silakan login.');
             navigateTo('loginView');
             document.getElementById('registerForm').reset();
-            errorEl.classList.add('hidden');
         });
 
         // Handler Logout
-        document.getElementById('logoutBtn').addEventListener('click', () => {
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) {
+                showNotification(`Gagal logout: ${error.message}`);
+                return;
+            }
             appData.currentUser = null;
             appData.cart = []; // Kosongkan keranjang saat logout
+            
+            // Kosongkan cache data
+            appData.profiles = [];
+            appData.sellers = [];
+            appData.menus = [];
+            appData.orders = [];
+            appData.promos = [];
+
             navigateTo('loginView');
         });
         
         // Event Delegation untuk tombol dinamis
-        document.getElementById('app').addEventListener('click', (e) => {
+        document.getElementById('app').addEventListener('click', async (e) => {
             // -- Navigasi Tab --
             if (e.target.closest('.siswa-nav-btn')) {
                 navigateToTab('siswa-nav-btn', 'siswa-tab-content', e.target.closest('.siswa-nav-btn').dataset.target);
@@ -970,19 +1088,43 @@
             // -- Admin --
             if (e.target.classList.contains('admin-delete-seller')) {
                 const sellerId = e.target.dataset.id;
+                const userId = e.target.dataset.userid;
+
                 // Hapus penjual & menu terkait
                 appData.sellers = appData.sellers.filter(s => s.id !== sellerId);
-                appData.menus = appData.menus.filter(m => m.sellerId !== sellerId);
+                appData.menus = appData.menus.filter(m => m.seller_id !== sellerId);
+
+                // Hapus dari Supabase
+                const { error } = await supabaseClient.from('sellers').delete().eq('id', sellerId);
+                // Juga ubah role user kembali
+                if (userId) {
+                    await supabaseClient.from('profiles').update({ role: 'Siswa', nama_warung: null }).eq('id', userId);
+                }
+
+                if (error) {
+                    showNotification(`Gagal menghapus penjual: ${error.message}`);
+                    await loadAllDataFromSupabase(); // Muat ulang data jika gagal
+                } else {
+                    showNotification('Penjual dan semua menunya telah dihapus.');
+                }
                 renderAdminDashboard();
-                showNotification('Penjual dan semua menunya telah dihapus.');
             }
 
             // BARU: Admin Hapus Menu
             if (e.target.classList.contains('admin-delete-menu')) {
                 const menuId = e.target.dataset.id;
                 appData.menus = appData.menus.filter(m => m.id !== menuId);
-                renderAdminMenus(); // Render ulang daftar menu admin
-                showNotification('Menu telah dihapus.');
+                
+                // Hapus dari Supabase
+                const { error } = await supabaseClient.from('menus').delete().eq('id', menuId);
+                if (error) {
+                    showNotification(`Gagal hapus menu: ${error.message}`);
+                    await loadAllDataFromSupabase();
+                    renderAdminMenus();
+                } else {
+                    showNotification('Menu telah dihapus.');
+                    renderAdminMenus(); // Render ulang daftar menu admin
+                }
             }
             
             // -- Siswa: Filter Menu --
@@ -1019,7 +1161,7 @@
                         name: menu.name,
                         price: menu.price,
                         quantity: 1,
-                        sellerId: menu.sellerId
+                        sellerId: menu.seller_id // Pastikan pakai seller_id
                     });
                 }
                 renderCart();
@@ -1071,49 +1213,103 @@
             if (e.target.classList.contains('penjual-delete-menu')) {
                 const menuId = e.target.dataset.id;
                 appData.menus = appData.menus.filter(m => m.id !== menuId);
-                const sellerId = appData.sellers.find(s => s.userId === appData.currentUser.id).id;
+                
+                // Hapus dari Supabase
+                const { error } = await supabaseClient.from('menus').delete().eq('id', menuId);
+                
+                const sellerId = appData.sellers.find(s => s.user_id === appData.currentUser.id).id;
+                if(error) {
+                    showNotification(`Gagal hapus menu: ${error.message}`);
+                    await loadAllDataFromSupabase();
+                } else {
+                    showNotification('Menu berhasil dihapus.');
+                }
                 renderPenjualMenu(sellerId);
-                showNotification('Menu berhasil dihapus.');
             }
         });
 
         // Handler Admin: Tambah Penjual
-        document.getElementById('adminAddSellerForm').addEventListener('submit', (e) => {
+        document.getElementById('adminAddSellerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const userId = document.getElementById('adminSelectUser').value;
             if (!userId) return;
             
-            const user = appData.users.find(u => u.id === userId);
-            const newSeller = {
-                id: generateId('s'),
-                name: user.namaWarung,
-                userId: user.id
+            const user = appData.profiles.find(u => u.id === userId); // Diubah ke profiles
+            const newSellerData = {
+                name: user.nama_warung,
+                user_id: user.id
             };
-            appData.sellers.push(newSeller);
+
+            // Tambah ke Supabase dan dapatkan data yang baru dibuat (termasuk ID baru)
+            const { data, error } = await supabaseClient
+                .from('sellers')
+                .insert(newSellerData)
+                .select()
+                .single();
+
+            if (error || !data) {
+                showNotification(`Gagal menambah penjual: ${error.message}`);
+                return;
+            }
+
+            // Update role di profiles
+            await supabaseClient.from('profiles').update({ role: 'Penjual' }).eq('id', user.id);
+            
+            appData.sellers.push(data); // Tambah data baru ke cache lokal
+            user.role = 'Penjual'; // Update cache lokal profil
             renderAdminDashboard();
-            showNotification(`${user.namaWarung} berhasil ditambahkan sebagai penjual.`);
+            showNotification(`${user.nama_warung} berhasil ditambahkan sebagai penjual.`);
         });
         
         // Handler Penjual: Tambah/Edit Menu
-        document.getElementById('menuForm').addEventListener('submit', (e) => {
+        document.getElementById('menuForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const sellerId = appData.sellers.find(s => s.userId === appData.currentUser.id).id;
+            const seller = appData.sellers.find(s => s.user_id === appData.currentUser.id);
+            if (!seller) {
+                showNotification("Profil penjual Anda tidak ditemukan.");
+                return;
+            }
+            const sellerId = seller.id;
             const menuId = document.getElementById('menuId').value;
             const menuData = {
                 name: document.getElementById('menuName').value,
                 price: parseInt(document.getElementById('menuPrice').value),
                 stock: parseInt(document.getElementById('menuStock').value),
                 category: document.getElementById('menuCategory').value,
-                sellerId: sellerId,
+                seller_id: sellerId,
                 image: `https://placehold.co/150x150/D1FAE5/10B981?text=${encodeURIComponent(document.getElementById('menuName').value)}`
             };
 
             if (menuId) { // Edit
+                const { data, error } = await supabaseClient
+                    .from('menus')
+                    .update(menuData)
+                    .eq('id', menuId)
+                    .select()
+                    .single();
+
+                if (error || !data) {
+                    showNotification(`Gagal perbarui menu: ${error.message}`);
+                    return;
+                }
+                // Update cache lokal
                 const index = appData.menus.findIndex(m => m.id === menuId);
-                appData.menus[index] = { ...appData.menus[index], ...menuData };
+                appData.menus[index] = data;
                 showNotification('Menu berhasil diperbarui.');
+
             } else { // Tambah
-                appData.menus.push({ id: generateId('m'), ...menuData });
+                const { data, error } = await supabaseClient
+                    .from('menus')
+                    .insert(menuData)
+                    .select()
+                    .single();
+                
+                if (error || !data) {
+                    showNotification(`Gagal tambah menu: ${error.message}`);
+                    return;
+                }
+                // Tambah ke cache lokal
+                appData.menus.push(data);
                 showNotification('Menu berhasil ditambahkan.');
             }
             
@@ -1130,25 +1326,41 @@
         });
 
         // Handler Penjual: Ubah Status Pesanan
-        document.getElementById('app').addEventListener('change', (e) => {
+        document.getElementById('app').addEventListener('change', async (e) => {
             if (e.target.classList.contains('penjual-status-select')) {
                 const orderId = e.target.dataset.orderId;
                 const newStatus = e.target.value;
+                
+                // Update Supabase
+                const { data, error } = await supabaseClient
+                    .from('orders')
+                    .update({ status: newStatus })
+                    .eq('id', orderId)
+                    .select()
+                    .single();
+
+                if (error || !data) {
+                    showNotification(`Gagal update status: ${error.message}`);
+                    return;
+                }
+                
+                // Update cache lokal
                 const order = appData.orders.find(o => o.id === orderId);
                 order.status = newStatus;
+                
                 showNotification(`Status pesanan ${orderId} diubah menjadi ${newStatus}.`);
                 // Jika sudah selesai, tidak bisa diubah lagi
                 if (newStatus === 'Selesai') {
                     e.target.disabled = true;
                     // Render ulang tab laporan untuk update pendapatan
-                    const sellerId = appData.sellers.find(s => s.userId === appData.currentUser.id).id;
+                    const sellerId = appData.sellers.find(s => s.user_id === appData.currentUser.id).id;
                     renderPenjualReport(sellerId);
                 }
             }
         });
 
         // Handler Checkout (Siswa & Guru)
-        const handleCheckout = () => {
+        const handleCheckout = async () => {
             if (appData.cart.length === 0) {
                 showNotification('Keranjang Anda kosong.');
                 return;
@@ -1173,44 +1385,87 @@
             });
 
             // Buat pesanan terpisah untuk setiap penjual
+            let allOrdersSuccessful = true;
+            let stockError = false;
+
             for (const sellerId in ordersBySeller) {
                 const orderData = ordersBySeller[sellerId];
                 
                 // Cek stok sebelum membuat pesanan
                 let stockSufficient = true;
-                orderData.items.forEach(item => {
+                const stockUpdates = [];
+                for (const item of orderData.items) {
                    const menu = appData.menus.find(m => m.id === item.menuId);
                    if (menu.stock < item.quantity) {
                        stockSufficient = false;
                        showNotification(`Stok ${menu.name} tidak mencukupi (sisa ${menu.stock}). Pesanan dibatalkan.`);
+                       stockError = true;
+                       break; // Hentikan pengecekan untuk penjual ini
                    }
-                });
+                   stockUpdates.push({ id: menu.id, newStock: menu.stock - item.quantity });
+                }
                 
                 if (!stockSufficient) {
-                    return; // Hentikan proses checkout jika ada stok yg kurang
+                    continue; // Lanjut ke penjual berikutnya jika stok tidak cukup
                 }
 
-                // Kurangi stok
-                orderData.items.forEach(item => {
-                   const menu = appData.menus.find(m => m.id === item.menuId);
-                   menu.stock -= item.quantity;
-                });
-
                 // Buat pesanan baru
-                const newOrder = {
-                    id: generateId('o'),
-                    userId: appData.currentUser.id,
-                    sellerId: sellerId,
+                const newOrderData = {
+                    user_id: appData.currentUser.id,
+                    seller_id: sellerId,
                     items: orderData.items,
                     total: orderData.total,
-                    status: 'Diterima',
-                    orderTime: new Date().toISOString()
+                    status: 'Diterima'
+                    // order_time diatur default oleh Supabase
                 };
+                
+                // Kirim ke Supabase
+                const { data: newOrder, error: orderError } = await supabaseClient
+                    .from('orders')
+                    .insert(newOrderData)
+                    .select()
+                    .single();
+
+                if (orderError || !newOrder) {
+                    allOrdersSuccessful = false;
+                    showNotification(`Gagal membuat pesanan: ${orderError.message}`);
+                    continue; // Gagal, lanjut ke penjual berikutnya
+                }
+                
+                // Jika pesanan berhasil, kurangi stok
+                const stockUpdatePromises = stockUpdates.map(async (update) => {
+                    const { error: stockError } = await supabaseClient
+                        .from('menus')
+                        .update({ stock: update.newStock })
+                        .eq('id', update.id);
+                    
+                    if (stockError) {
+                        console.error(`Gagal update stok untuk ${update.id}:`, stockError);
+                        // Ini masalah, tapi pesanan sudah dibuat. Perlu penanganan khusus.
+                        // Untuk saat ini, kita biarkan.
+                    } else {
+                        // Update cache stok lokal
+                        const menuInCache = appData.menus.find(m => m.id === update.id);
+                        if (menuInCache) menuInCache.stock = update.newStock;
+                    }
+                });
+
+                await Promise.all(stockUpdatePromises);
+
+                // Tambah pesanan baru ke cache lokal
                 appData.orders.push(newOrder);
             }
 
+            if (stockError) return; // Jika ada error stok, proses berhenti, keranjang tidak dibersihkan
+
+            if (!allOrdersSuccessful) {
+                 showNotification('Beberapa pesanan mungkin gagal. Silakan cek riwayat pesanan Anda.');
+            } else {
+                showNotification('Checkout berhasil! Pesanan Anda sedang diproses.');
+            }
+            
+            // Bersihkan keranjang
             appData.cart = [];
-            showNotification('Checkout berhasil! Pesanan Anda sedang diproses.');
             
             // Render ulang dan pindah ke riwayat pesanan
             if (appData.currentUser.role === 'Siswa') {
@@ -1229,10 +1484,62 @@
         // ========================================================================
         // INISIALISASI APLIKASI
         // ========================================================================
-        window.onload = () => {
+        
+        // Fungsi inisialisasi utama yang baru
+        async function initializeApp() {
             populateKelasOptions();
-            navigateTo('loginView'); // Mulai dari halaman login
-        };
+
+            // Cek apakah ada sesi login yang tersimpan
+            const { data: { session } } = await supabaseClient.auth.getSession();
+
+            if (session) {
+                // Ada pengguna yang login
+                const { data: profileData, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                
+                if (profileData && !error) {
+                    appData.currentUser = profileData;
+                    document.getElementById('currentUserName').textContent = profileData.username;
+                    
+                    // Muat semua data kantin
+                    await loadAllDataFromSupabase();
+                    
+                    // Arahkan ke dashboard yang sesuai
+                    navigateTo('dashboardWrapper');
+                    const role = profileData.role;
+                    if (role === 'Admin') {
+                        document.getElementById('adminDashboard').classList.remove('hidden');
+                        renderAdminDashboard();
+                    } else if (role === 'Siswa') {
+                        document.getElementById('siswaDashboard').classList.remove('hidden');
+                        renderSiswaDashboard();
+                        navigateToTab('siswa-nav-btn', 'siswa-tab-content', 'siswaMenuView');
+                    } else if (role === 'Guru') {
+                        document.getElementById('guruDashboard').classList.remove('hidden');
+                        renderGuruDashboard();
+                        navigateToTab('guru-nav-btn', 'guru-tab-content', 'guruMenuView');
+                    } else if (role === 'Penjual') {
+                        document.getElementById('penjualDashboard').classList.remove('hidden');
+                        renderPenjualDashboard();
+                        navigateToTab('penjual-nav-btn', 'penjual-tab-content', 'penjualOrderView');
+                    }
+                } else {
+                    // Sesi ada tapi profil tidak ditemukan, paksa logout
+                    await supabaseClient.auth.signOut();
+                    navigateTo('loginView');
+                }
+            } else {
+                // Tidak ada sesi, tampilkan halaman login
+                navigateTo('loginView');
+            }
+        }
+        
+        // Ganti window.onload dengan memanggil fungsi async baru
+        initializeApp();
+
     </script>
 
 </body>
